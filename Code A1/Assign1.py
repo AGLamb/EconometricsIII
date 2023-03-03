@@ -53,7 +53,11 @@ class VAR_Model:
                                             exo[:, col_num:]))
         beta_right = np.matmul(exo[:, col_num:].T, exo[:, :col_num])
         self.coef = np.matmul(beta_left, beta_right)
-        print(f'The following are the coefficients of the regression \n {self.coef}')
+        print(f'The following are the coefficients of the regression: \nC =  {self.coef[0,:]}')
+        row = 1
+        for i in range(1, lags):
+            print(f'B_{i} = {self.coef[row:row+len(self.exog.columns), :]}')
+            row += len(self.exog.columns)
         return
 
 
