@@ -25,14 +25,23 @@ def ProblemA(input_df: pd.DataFrame) -> None:
 
 
 def ProblemB(input_df: pd.DataFrame):
-    exog_df = input_df
+    exog_df = input_df.copy()
     exog_df.drop(columns='cpi', inplace=True)
     model = VAR_Model(exog_df, lags=3)
     model.regress()
-    model.AIC()
-    model.SIC()
-    model.HQIC()
     return
+
+
+def select_order(input_df: pd.DataFrame, lags: list):
+    models = []
+    output = dict()
+    for i in range(len(lags)):
+        Mod = VAR_Model(input_df, lags[i])
+        Mod.drop_obs(no_to_drop=(max(lags) - lags[i]))
+        models.append(Mod)
+        models[i].regress()
+        output["VAR(" + str(lags[i]) + ")"] = [models[i].AIC, models[i].SIC, models[i].HQIC]
+    return output
 
 
 class VAR_Model:
@@ -40,9 +49,9 @@ class VAR_Model:
         self.coef = None
         self.pred = None
         self.exog = input_df
-        self.aic = 0
-        self.sic = 0
-        self.hqic = 0
+        self.aic = None
+        self.sic = None
+        self.hqic = None
         self.order = lags
 
     def drop_obs(self, no_to_drop: int):
@@ -73,34 +82,50 @@ class VAR_Model:
         return
 
     def AIC(self):
-        n, p = self.exog.to_numpy().shape[0] - self.order, self.exog.to_numpy().shape[1]
-        k = p ** 2 * self. order + p
-        resid = self.exog.iloc[self.order:, :] - self.pred
-        sigma2 = (1 / n) * (resid.T @ resid)
-        self.aic = np.log(np.linalg.det(sigma2)) + (2 * k) / n
-        print(f'The Akaike Information Criteria is: {self.aic}')
+        if pred is None:
+            raise Exception(f'The model has not been estimated')
+        else:
+            n, p = self.exog.to_numpy().shape[0] - self.order, self.exog.to_numpy().shape[1]
+            k = p ** 2 * self. order + p
+            resid = self.exog.iloc[self.order:, :] - self.pred
+            sigma2 = (1 / n) * (resid.T @ resid)
+            self.aic = np.log(np.linalg.det(sigma2)) + (2 * k) / n
+            print(f'The Akaike Information Criteria is: {self.aic}')
         return
 
     def SIC(self):
-        n, p = self.exog.to_numpy().shape[0] - self.order, self.exog.to_numpy().shape[1]
-        k = p ** 2 * self.order + p
-        resid = self.exog.iloc[self.order:, :] - self.pred
-        sigma2 = (1 / n) * (resid.T @ resid)
-        self.sic = np.log(np.linalg.det(sigma2)) + (k * np.log(n)) / n
-        print(f'The Schwartz Information Criteria is: {self.sic}')
+        if pred is None:
+            raise Exception(f'The model has not been estimated')
+        else:
+            n, p = self.exog.to_numpy().shape[0] - self.order, self.exog.to_numpy().shape[1]
+            k = p ** 2 * self.order + p
+            resid = self.exog.iloc[self.order:, :] - self.pred
+            sigma2 = (1 / n) * (resid.T @ resid)
+            self.sic = np.log(np.linalg.det(sigma2)) + (k * np.log(n)) / n
+            print(f'The Schwartz Information Criteria is: {self.sic}')
         return
 
     def HQIC(self):
-        n, p = self.exog.to_numpy().shape[0] - self.order, self.exog.to_numpy().shape[1]
-        k = p ** 2 * self.order + p
-        resid = self.exog.iloc[self.order:, :] - self.pred
-        sigma2 = (1 / n) * (resid.T @ resid)
-        self.hqic = np.log(np.linalg.det(sigma2)) + (2 * k * np.log(np.log(n))) / n
-        print(f'The Hannan-Quinn Information Criteria is: {self.hqic}')
+        if pred is None:
+            raise Exception(f'The model has not been estimated')
+        else:
+            n, p = self.exog.to_numpy().shape[0] - self.order, self.exog.to_numpy().shape[1]
+            k = p ** 2 * self.order + p
+            resid = self.exog.iloc[self.order:, :] - self.pred
+            sigma2 = (1 / n) * (resid.T @ resid)
+            self.hqic = np.log(np.linalg.det(sigma2)) + (2 * k * np.log(np.log(n))) / n
+            print(f'The Hannan-Quinn Information Criteria is: {self.hqic}')
         return
 
+    # def impulse_response(self):
+    #     return
 
-def ProblemC():
+
+def ProblemC(input_df: pd.DataFrame):
+    exog_df = input_df.copy()
+    exog_df.drop(columns='cpi', inplace=True)
+    order_res = select_order(input_df=exog_df, lags=[1, 2, 3])
+    print(order_res)
     return
 
 
@@ -117,6 +142,7 @@ def main() -> None:
     df = get_data(path)
     # ProblemA(df)
     ProblemB(df)
+    ProblemC(df)
     return None
 
 
