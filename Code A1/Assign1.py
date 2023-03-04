@@ -30,17 +30,18 @@ def ProblemB(input_df: pd.DataFrame):
     model = VAR_Model(exog_df, lags=3)
     model.regress()
     model.AIC()
-    # model2 = VAR(exog_df).fit(maxlags=3)
+    model.SIC()
+    model.HQIC()
     return
 
 
 class VAR_Model:
-    def __init__(self, input_df: pd.DataFrame, lags:int):
+    def __init__(self, input_df: pd.DataFrame, lags: int):
         self.coef = None
         self.pred = None
         self.exog = input_df
         self.aic = 0
-        self.bic = 0
+        self.sic = 0
         self.hqic = 0
         self.order = lags
 
@@ -77,13 +78,25 @@ class VAR_Model:
         resid = self.exog.iloc[self.order:, :] - self.pred
         sigma2 = (1 / n) * (resid.T @ resid)
         self.aic = np.log(np.linalg.det(sigma2)) + (2 * k) / n
-        print(self.aic)
+        print(f'The Akaike Information Criteria is: {self.aic}')
         return
 
     def SIC(self):
+        n, p = self.exog.to_numpy().shape[0] - self.order, self.exog.to_numpy().shape[1]
+        k = p ** 2 * self.order + p
+        resid = self.exog.iloc[self.order:, :] - self.pred
+        sigma2 = (1 / n) * (resid.T @ resid)
+        self.sic = np.log(np.linalg.det(sigma2)) + (k * np.log(n)) / n
+        print(f'The Schwartz Information Criteria is: {self.sic}')
         return
 
     def HQIC(self):
+        n, p = self.exog.to_numpy().shape[0] - self.order, self.exog.to_numpy().shape[1]
+        k = p ** 2 * self.order + p
+        resid = self.exog.iloc[self.order:, :] - self.pred
+        sigma2 = (1 / n) * (resid.T @ resid)
+        self.hqic = np.log(np.linalg.det(sigma2)) + (2 * k * np.log(np.log(n))) / n
+        print(f'The Hannan-Quinn Information Criteria is: {self.hqic}')
         return
 
 
