@@ -1,6 +1,7 @@
 from statsmodels.tsa.api import VAR
 from numpy.linalg import inv, eig
 import matplotlib.pyplot as plt
+import scipy.stats as stats
 import pandas as pd
 import numpy as np
 import os
@@ -45,7 +46,7 @@ class VAR_Model:
 
         row = 1
         for i in range(1, self.order + 1):
-            print(f'B_{i} = {self.coef[row:row + len(self.exog.columns), :]}')
+            print(f'B_{i} = {self.coef[row:row + len(self.exog.columns), :].T}')
             row += len(self.exog.columns)
 
         print("\n")
@@ -61,7 +62,7 @@ class VAR_Model:
         n, p = self.exog.to_numpy().shape[0] - self.order, self.exog.to_numpy().shape[1]
         k = p ** 2 * self.order + p
         self.sigma2_ML = (1 / n) * (self.resid.T @ self.resid)
-        self.sigma2_LS = (1 / (n - (k * p) - 1)) * (self.resid.T @ self.resid)
+        self.sigma2_LS = (n / (n - k * p - 1)) * self.sigma2_ML
         return None
 
     def AIC(self) -> None:
@@ -129,14 +130,16 @@ class VAR_Model:
                         i += 1
 
         Cb = np.dot(C, vec_operator(self.coef))
-        kron_prod = np.kron(np.linalg.inv(self.resid.T @ self.resid), self.sigma2_LS)
+
+        kron_prod = np.kron(np.linalg.inv(self.exo_lagged.T @ self.exo_lagged), self.sigma2_LS)
         middle = np.linalg.inv(C @ kron_prod @ C.T)
-        lam = (Cb.T @ middle @ Cb)
-        statistic = lam / restrictions
-        df = (restrictions, k * self.df_resid)
-        dist = stats.f(*df)
-        pvalue = dist.sf(statistic)
+        lam = (Cb.T @ middle @ Cb) / n
+
+        dist = stats.f(n, len(self.exog) - self.order * len(self.exog.columns) - 1)
+        pvalue = dist.sf(lam)
         crit_value = dist.ppf(1 - alpha)
+
+        print(f'The critical values is:{crit_value:.2f}\nThe p-value is:{pvalue:.2f}')
         return
 
 
@@ -285,7 +288,7 @@ def ProblemE(input_df: pd.DataFrame) -> VAR_Model:
 
 
 def ProblemF(input_model: VAR_Model) -> None:
-    input_model.granger_causality(caused_var=[0, 1], causing_var=[2], alpha=0.05, constants=True)
+    input_model.granger_causality(caused_var=[0, 2], causing_var=[1], alpha=0.05, constants=True)
     return None
 
 
