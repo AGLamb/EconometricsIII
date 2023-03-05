@@ -1,14 +1,12 @@
-rom
-statsmodels.tsa.api
-import VAR
+from statsmodels.tsa.api import VAR
 from numpy.linalg import inv, eig
 import matplotlib.pyplot as plt
+from itertools import accumulate
 import scipy.stats as stats
+from pprint import pprint
 import pandas as pd
 import numpy as np
 import os
-from pprint import pprint
-from itertools import accumulate
 
 
 class VAR_Model:
@@ -116,8 +114,8 @@ class VAR_Model:
             i = 0
             for var1 in causing_var:
                 for var2 in caused_var:
-                    for j in range(1, self.order + 1):
-                        restriction_matrix[var2, var1 * j + 1] = 1
+                    for j in range(self.order):
+                        restriction_matrix[var2, var1 + j * len(self.exog.columns) + 1] = 1
                         C[i, :] = vec_operator(restriction_matrix)
                         restriction_matrix[:, :] = 0
                         i += 1
@@ -130,11 +128,11 @@ class VAR_Model:
             for var1 in causing_var:
                 for var2 in caused_var:
                     for j in range(self.order):
-                        restriction_matrix[var2, var1 * j] = 1
+                        restriction_matrix[var2, var1 + j * len(self.exog.columns)] = 1
                         C[i, :] = vec_operator(restriction_matrix)
                         restriction_matrix[:, :] = 0
                         i += 1
-
+        print(C)
         Cb = np.dot(C, vec_operator(self.coef.T))
 
         kron_prod = np.kron(np.linalg.inv(self.exo_lagged.T @ self.exo_lagged), self.sigma2_LS)
@@ -358,9 +356,9 @@ def main() -> None:
     # ProblemA(df)
     # ProblemB(df)
     # ProblemC(df)
-    ProblemD(df)
-    # Model_E = ProblemE(df)
-    # ProblemF(Model_E)
+    # ProblemD(df)
+    Model_E = ProblemE(df)
+    ProblemF(Model_E)
 
     return None
 
