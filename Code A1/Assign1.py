@@ -46,7 +46,7 @@ class VAR_Model:
 
         row = 1
         for i in range(1, self.order + 1):
-            print(f'B_{i} = {self.coef[row:row + len(self.exog.columns), :]}')
+            print(f'B_{i} = {self.coef[row:row + len(self.exog.columns), :].T}')
             row += len(self.exog.columns)
 
         print("\n")
@@ -130,12 +130,15 @@ class VAR_Model:
                         i += 1
 
         Cb = np.dot(C, vec_operator(self.coef))
+
         kron_prod = np.kron(np.linalg.inv(self.exo_lagged.T @ self.exo_lagged), self.sigma2_LS)
         middle = np.linalg.inv(C @ kron_prod @ C.T)
         lam = (Cb.T @ middle @ Cb) / n
+
         dist = stats.f(n, len(self.exog) - self.order * len(self.exog.columns) - 1)
         pvalue = dist.sf(lam)
         crit_value = dist.ppf(1 - alpha)
+
         print(f'The critical values is:{crit_value:.2f}\nThe p-value is:{pvalue:.2f}')
         return
 
