@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import os
 from pprint import pprint
+from itertools import accumulate
 
 
 class VAR_Model:
@@ -234,7 +235,7 @@ def ProblemC(input_df: pd.DataFrame) -> None:
 
 def ProblemD(input_df: pd.DataFrame) -> None:
     exog_df = input_df.copy()
-    exog_df.drop(columns=['cpi'], inplace=True)
+    exog_df.drop(columns=['ir'], inplace=True)
 
     print(exog_df)
 
@@ -281,20 +282,23 @@ def ProblemD(input_df: pd.DataFrame) -> None:
     gpd_cpi = []
     gdp_gdp = []
 
-    cpi_cpi_acc = []
-    cpi_gpd_acc = []
-    gpd_cpi_acc = []
-    gdp_gdp_acc = []
-
     for i in range(horizon):
         cpi_cpi.append(IR_array[i, 1, 1])
         cpi_gpd.append(IR_array[i, 0, 1])
         gpd_cpi.append(IR_array[i, 1, 0])
         gdp_gdp.append(IR_array[i, 1, 1])
 
+
+    cpi_cpi_acc = list(accumulate(cpi_cpi))
+    cpi_gpd_acc = list(accumulate(cpi_gpd))
+    gpd_cpi_acc = list(accumulate(gpd_cpi))
+    gdp_gdp_acc = list(accumulate(gdp_gdp))
+
     # Define impulse response data
     impulse_responses = [cpi_cpi, cpi_gpd, gpd_cpi, gdp_gdp]
-    title_names = ['IR -> IR', 'IR -> GPD', 'GPD -> IR', 'GPD -> GPD']
+    acc_imulse_responses = [cpi_cpi_acc, cpi_gpd_acc, gpd_cpi_acc, gdp_gdp_acc]
+
+    title_names = ['CPI -> CPI', 'CPI -> GDP', 'GDP -> CPI', 'GDP -> GDP']
 
     # Create figure and subplots
     fig, axs = plt.subplots(nrows=2, ncols=2)
@@ -312,10 +316,24 @@ def ProblemD(input_df: pd.DataFrame) -> None:
         axs[row, col].set_xticklabels(range(1, 11))
         axs[row, col].set_title(title_names[i])
 
+    # Create figure and subplots
+    fig, axs = plt.subplots(nrows=2, ncols=2)
+
+    # Loop over impulse responses and plot in separate subplots
+    for i, ir in enumerate(acc_imulse_responses):
+        # Determine row and column indices for current subplot
+        row = i // 2
+        col = i % 2
+        
+        # Plot impulse response and set x-axis limits and labels
+        axs[row, col].plot(ir)
+        axs[row, col].set_xlim([0, 10])
+        axs[row, col].set_xticks(range(1, 11))
+        axs[row, col].set_xticklabels(range(1, 11))
+        axs[row, col].set_title(title_names[i])
     
 
     # Adjust layout and show plot
-    fig.tight_layout()
     plt.show()
 
         
@@ -341,20 +359,12 @@ def main() -> None:
     path = "./Data/data_assignment1_2023.csv"
     df = get_data(path)
     # ProblemA(df)
-<<<<<<< HEAD
     # ProblemB(df)
     # ProblemC(df)
     ProblemD(df)
     #Model_E = ProblemE(df)
     #ProblemF(Model_E)
 
-=======
-    ProblemB(df)
-    ProblemC(df)
-    # ProblemD()
-    # Model_E = ProblemE(df)
-    # ProblemF(Model_E)
->>>>>>> 4abe010196801908c9377289e821dfe5ec2429a5
     return None
 
 
