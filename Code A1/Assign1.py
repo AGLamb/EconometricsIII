@@ -292,10 +292,8 @@ def ProblemD(input_df: pd.DataFrame) -> None:
         gpd_cpi.append(IR_array[i, 1, 0])
         gdp_gdp.append(IR_array[i, 1, 1])
 
-        ir_ir_ic
-
     # Define impulse response data
-    impulse_responses = [ir_ir, ir_gpd, gpd_ir, gdp_gdp]
+    impulse_responses = [cpi_cpi, cpi_gpd, gpd_cpi, gdp_gdp]
     title_names = ['IR -> IR', 'IR -> GPD', 'GPD -> IR', 'GPD -> GPD']
 
     # Create figure and subplots
