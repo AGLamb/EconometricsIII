@@ -5,6 +5,7 @@ import scipy.stats as stats
 import pandas as pd
 import numpy as np
 import os
+from pprint import pprint
 
 
 class VAR_Model:
@@ -230,50 +231,94 @@ def ProblemC(input_df: pd.DataFrame) -> None:
 
 def ProblemD(input_df: pd.DataFrame) -> None:
     exog_df = input_df.copy()
-    exog_df.drop(columns='cpi', inplace=True)
+    exog_df.drop(columns=['cpi'], inplace=True)
+
+    print(exog_df)
 
     model_3 = VAR_Model(exog_df, lags=3)
     model_3.regress()
 
-    B_hat = model_3.coef
+    B_hat = model_3.coef.T
+    #print(B_hat)
 
     ## calculate and plot 4 impulse response functions with 10 periods
-    horizon = 10
+    horizon = 11
 
     # Initialize arrays
-    A_hat_array = np.zeros((2, 2, horizon))
-    IR_array = np.empty((2, 2, horizon + 1))
+    IR_array = np.zeros((horizon + 1, 2, 2))
+    IR_array[0, :, :] = np.identity(2)
+    #print(IR_array)
 
-    # Set initial values
-    A_hat_array[:, :, :4] = B_hat[:, 1:]
-    IR_array[:, :, 0] = np.identity(2)
+    #2x2 array for each horizon
+    A_hat_array = np.zeros((2, horizon*2))
+    A_hat_array[:, :6] = B_hat[:, 1:]
 
-    # Calculate impulse responses
+    #print(A_hat_array)
+
+    # Calculate impulse responses, the range is correct cause 0 indexing
     for i in range(1, horizon + 1):
+        #print(i)
         IR_here = np.zeros((2, 2))
-        for j in range(1, i):
-            IR_here += np.dot(IR_array[:, :, i-j], A_hat_array[:, :, j-1])
-        IR_array[:, :, i] = IR_here
+        previous_j = 0
+        for j in range(1, i+1):
+            IR_here += IR_array[i-j, :, :] @ A_hat_array[:, previous_j:(2*j)]
+            #print(i,j)
+            #print('ir',IR_array[(i-1)-j, :, :])
+            #print('A_hat', A_hat_array[:, previous_j:(2*j)])
+            previous_j = 2*j
+        IR_array[i, :, :] = IR_here
 
-    # Collect impulse responses in a table
-    IR_table = np.vstack((IR_array[0, 0, :], IR_array[0, 1, :],
-                        IR_array[1, 0, :], IR_array[1, 1, :])).T
-    colnames = ["Response: GDP -> GDP", "Response: infl -> GDP",
-                "Response: GDP -> infl", "Response: infl -> infl"]
-    IR_table = np.column_stack((IR_table,))
-    IR_table = np.concatenate((np.array([colnames]), IR_table), axis=0)
+    print(IR_array)
 
-    # Plot impulse responses
-    plt.figure(figsize=(8, 6))
-    plt.subplots_adjust(hspace=0.5)
-    for i in range(4):
-        plt.subplot(2, 2, i+1)
-        plt.plot(IR_table[:, i+1])
-        plt.axhline(y=0, color='k', linestyle='--')
-        plt.title(IR_table[0, i+1])
-        plt.ylim((-0.3, 1))
-        plt.xlabel("Horizon")
+    # create lists with the impulse responses (this isnt general cause I already spent to much time on generality)
+
+    # list for ir -> ir
+    cpi_cpi = []
+    cpi_gpd = []
+    gpd_cpi = []
+    gdp_gdp = []
+
+    cpi_cpi_acc = []
+    cpi_gpd_acc = []
+    gpd_cpi_acc = []
+    gdp_gdp_acc = []
+
+    for i in range(horizon):
+        cpi_cpi.append(IR_array[i, 1, 1])
+        cpi_gpd.append(IR_array[i, 0, 1])
+        gpd_cpi.append(IR_array[i, 1, 0])
+        gdp_gdp.append(IR_array[i, 1, 1])
+
+        ir_ir_ic
+
+    # Define impulse response data
+    impulse_responses = [ir_ir, ir_gpd, gpd_ir, gdp_gdp]
+    title_names = ['IR -> IR', 'IR -> GPD', 'GPD -> IR', 'GPD -> GPD']
+
+    # Create figure and subplots
+    fig, axs = plt.subplots(nrows=2, ncols=2)
+
+    # Loop over impulse responses and plot in separate subplots
+    for i, ir in enumerate(impulse_responses):
+        # Determine row and column indices for current subplot
+        row = i // 2
+        col = i % 2
+        
+        # Plot impulse response and set x-axis limits and labels
+        axs[row, col].plot(ir)
+        axs[row, col].set_xlim([0, 10])
+        axs[row, col].set_xticks(range(1, 11))
+        axs[row, col].set_xticklabels(range(1, 11))
+        axs[row, col].set_title(title_names[i])
+
+    
+
+    # Adjust layout and show plot
+    fig.tight_layout()
     plt.show()
+
+        
+
 
     return None
 
