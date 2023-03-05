@@ -239,7 +239,7 @@ def ProblemD(input_df: pd.DataFrame) -> None:
 
     print(exog_df)
 
-    model_3 = VAR_Model(exog_df, lags=3)
+    model_3 = VAR_Model(exog_df, lags=2)
     model_3.regress()
 
     B_hat = model_3.coef.T
@@ -255,7 +255,7 @@ def ProblemD(input_df: pd.DataFrame) -> None:
 
     #2x2 array for each horizon
     A_hat_array = np.zeros((2, horizon*2))
-    A_hat_array[:, :6] = B_hat[:, 1:]
+    A_hat_array[:, :4] = B_hat[:, 1:]
 
     #print(A_hat_array)
 
@@ -286,7 +286,7 @@ def ProblemD(input_df: pd.DataFrame) -> None:
         cpi_cpi.append(IR_array[i, 1, 1])
         cpi_gpd.append(IR_array[i, 0, 1])
         gpd_cpi.append(IR_array[i, 1, 0])
-        gdp_gdp.append(IR_array[i, 1, 1])
+        gdp_gdp.append(IR_array[i, 0, 0])
 
 
     cpi_cpi_acc = list(accumulate(cpi_cpi))
