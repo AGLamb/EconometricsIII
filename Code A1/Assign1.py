@@ -226,6 +226,52 @@ def ProblemC(input_df: pd.DataFrame) -> None:
 
 
 def ProblemD(input_df: pd.DataFrame) -> None:
+    exog_df = input_df.copy()
+    exog_df.drop(columns='cpi', inplace=True)
+
+    model_3 = VAR_Model(exog_df, lags=3)
+    model_3.regress()
+
+    B_hat = model_3.coef
+
+    ## calculate and plot 4 impulse response functions with 10 periods
+    horizon = 10
+
+    # Initialize arrays
+    A_hat_array = np.zeros((2, 2, horizon))
+    IR_array = np.empty((2, 2, horizon + 1))
+
+    # Set initial values
+    A_hat_array[:, :, :4] = B_hat[:, 1:]
+    IR_array[:, :, 0] = np.identity(2)
+
+    # Calculate impulse responses
+    for i in range(1, horizon + 1):
+        IR_here = np.zeros((2, 2))
+        for j in range(1, i):
+            IR_here += np.dot(IR_array[:, :, i-j], A_hat_array[:, :, j-1])
+        IR_array[:, :, i] = IR_here
+
+    # Collect impulse responses in a table
+    IR_table = np.vstack((IR_array[0, 0, :], IR_array[0, 1, :],
+                        IR_array[1, 0, :], IR_array[1, 1, :])).T
+    colnames = ["Response: GDP -> GDP", "Response: infl -> GDP",
+                "Response: GDP -> infl", "Response: infl -> infl"]
+    IR_table = np.column_stack((IR_table,))
+    IR_table = np.concatenate((np.array([colnames]), IR_table), axis=0)
+
+    # Plot impulse responses
+    plt.figure(figsize=(8, 6))
+    plt.subplots_adjust(hspace=0.5)
+    for i in range(4):
+        plt.subplot(2, 2, i+1)
+        plt.plot(IR_table[:, i+1])
+        plt.axhline(y=0, color='k', linestyle='--')
+        plt.title(IR_table[0, i+1])
+        plt.ylim((-0.3, 1))
+        plt.xlabel("Horizon")
+    plt.show()
+
     return None
 
 
@@ -249,9 +295,10 @@ def main() -> None:
     # ProblemA(df)
     # ProblemB(df)
     # ProblemC(df)
-    # ProblemD()
-    Model_E = ProblemE(df)
-    ProblemF(Model_E)
+    ProblemD(df)
+    #Model_E = ProblemE(df)
+    #ProblemF(Model_E)
+
     return None
 
 
