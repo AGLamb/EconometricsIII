@@ -23,8 +23,7 @@ class VAR_Model:
         self.exo_lagged = None
 
     def drop_obs(self, no_to_drop: int) -> None:
-        inter = self.exog.iloc[no_to_drop - 1:, :]
-        self.exog = inter
+        self.exog = self.exog.iloc[no_to_drop:, :]
         return None
 
     def regress(self) -> None:
@@ -40,9 +39,12 @@ class VAR_Model:
 
         exo = exo[self.order:, :]
         col_num = self.exog.shape[1]
-
-        self.coef = np.linalg.inv(exo[:, col_num:].T @ exo[:, col_num:]) @ exo[:, col_num:].T @ exo[:, :col_num]
         self.exo_lagged = exo[:, col_num:]
+
+        coef_left = np.linalg.inv(self.exo_lagged.T @ self.exo_lagged)
+        coef_right = self.exo_lagged.T @ exo[:, :col_num]
+        self.coef = coef_left @ coef_right
+
         print(f'The following are the coefficients of the regression: \nC =  {self.coef[0, :]}')
 
         row = 1
@@ -71,7 +73,7 @@ class VAR_Model:
             raise ValueError(f'The model has not been estimated')
         else:
             n, p = self.exog.to_numpy().shape[0] - self.order, self.exog.to_numpy().shape[1]
-            k = p ** 2 * self.order + p
+            k = (p ** 2) * self.order + p
             self.aic = np.log(np.linalg.det(self.sigma2_ML)) + (2 * k) / n
         return None
 
@@ -80,7 +82,7 @@ class VAR_Model:
             raise ValueError(f'The model has not been estimated')
         else:
             n, p = self.exog.to_numpy().shape[0] - self.order, self.exog.to_numpy().shape[1]
-            k = p ** 2 * self.order + p
+            k = (p ** 2) * self.order + p
             self.sic = np.log(np.linalg.det(self.sigma2_ML)) + (k * np.log(n)) / n
         return None
 
@@ -89,7 +91,7 @@ class VAR_Model:
             raise ValueError(f'The model has not been estimated')
         else:
             n, p = self.exog.to_numpy().shape[0] - self.order, self.exog.to_numpy().shape[1]
-            k = p ** 2 * self.order + p
+            k = (p ** 2) * self.order + p
             self.hqic = np.log(np.linalg.det(self.sigma2_ML)) + (2 * k * np.log(np.log(n))) / n
         return None
 
@@ -130,13 +132,14 @@ class VAR_Model:
                         restriction_matrix[:, :] = 0
                         i += 1
 
-        Cb = np.dot(C, vec_operator(self.coef))
+        Cb = np.dot(C, vec_operator(self.coef.T))
 
         kron_prod = np.kron(np.linalg.inv(self.exo_lagged.T @ self.exo_lagged), self.sigma2_LS)
         middle = np.linalg.inv(C @ kron_prod @ C.T)
         lam = (Cb.T @ middle @ Cb) / n
+        print(f'The statistic is: {lam:.2f}')
 
-        dist = stats.f(n, len(self.exog) - self.order * len(self.exog.columns) - 1)
+        dist = stats.f(n, len(self.exog) - self.order * len(self.exog.columns) - len(self.exog.columns))
         pvalue = dist.sf(lam)
         crit_value = dist.ppf(1 - alpha)
 
@@ -204,7 +207,7 @@ def ProblemA(input_df: pd.DataFrame) -> None:
 
 def ProblemB(input_df: pd.DataFrame):
     exog_df = input_df.copy()
-    exog_df.drop(columns='cpi', inplace=True)
+    exog_df.drop(columns='ir', inplace=True)
     model = VAR_Model(exog_df, lags=3)
     model.regress()
     return
@@ -212,7 +215,7 @@ def ProblemB(input_df: pd.DataFrame):
 
 def ProblemC(input_df: pd.DataFrame) -> None:
     exog_df = input_df.copy()
-    exog_df.drop(columns='cpi', inplace=True)
+    exog_df.drop(columns='ir', inplace=True)
 
     model_1 = VAR_Model(exog_df, lags=1)
     model_1.drop_obs(no_to_drop=2)
@@ -328,7 +331,6 @@ def ProblemE(input_df: pd.DataFrame) -> VAR_Model:
 
     output_model = VAR_Model(exog_df, lags=2)
     output_model.regress()
-    vec_matrix(output_model.coef)
     return output_model
 
 
@@ -341,12 +343,20 @@ def main() -> None:
     path = "./Data/data_assignment1_2023.csv"
     df = get_data(path)
     # ProblemA(df)
+<<<<<<< HEAD
     # ProblemB(df)
     # ProblemC(df)
     ProblemD(df)
     #Model_E = ProblemE(df)
     #ProblemF(Model_E)
 
+=======
+    ProblemB(df)
+    ProblemC(df)
+    # ProblemD()
+    # Model_E = ProblemE(df)
+    # ProblemF(Model_E)
+>>>>>>> 4abe010196801908c9377289e821dfe5ec2429a5
     return None
 
 
