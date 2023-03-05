@@ -353,10 +353,10 @@ def ProblemF(input_model: VAR_Model) -> None:
 def main() -> None:
     path = "./Data/data_assignment1_2023.csv"
     df = get_data(path)
-    # ProblemA(df)
-    # ProblemB(df)
-    # ProblemC(df)
-    # ProblemD(df)
+    ProblemA(df)
+    ProblemB(df)
+    ProblemC(df)
+    ProblemD(df)
     Model_E = ProblemE(df)
     ProblemF(Model_E)
 
