@@ -211,7 +211,17 @@ def ProblemB(input_df: pd.DataFrame):
     exog_df.drop(columns='ir', inplace=True)
     model = VAR_Model(exog_df, lags=3)
     model.regress()
-    return
+    
+    #check for stability
+    B_hat = model.coef.T
+
+    mA=np.zeros(shape=(6,6))
+    mA[:2,:]=B_hat[:,1:]
+    mA[2,0]=mA[3,1]=mA[4,2]=mA[5,3]=1   
+    eigenvalues=np.linalg.eig(mA)[0]
+    print(eigenvalues)
+    
+    return None
 
 
 def ProblemC(input_df: pd.DataFrame) -> None:
@@ -243,7 +253,20 @@ def ProblemD(input_df: pd.DataFrame) -> None:
     model_3.regress()
 
     B_hat = model_3.coef.T
-    #print(B_hat)
+    
+    #### check for stability 
+    mA=np.zeros(shape=(4,4))
+    mA[:2,:]=B_hat[:,1:]
+    mA[2,0]=mA[3,1]=1   
+    print(mA)
+    eigenvalues=np.linalg.eig(mA)[0]
+    print(eigenvalues)
+
+    modulus = np.abs(eigenvalues)
+
+    print(modulus)
+
+
 
     ## calculate and plot 4 impulse response functions with 10 periods
     horizon = 11
@@ -272,7 +295,7 @@ def ProblemD(input_df: pd.DataFrame) -> None:
             previous_j = 2*j
         IR_array[i, :, :] = IR_here
 
-    print(IR_array)
+    #print(IR_array)
 
     # create lists with the impulse responses (this isnt general cause I already spent to much time on generality)
 
@@ -359,7 +382,7 @@ def main() -> None:
     path = "./Data/data_assignment1_2023.csv"
     df = get_data(path)
     # ProblemA(df)
-    # ProblemB(df)
+    #ProblemB(df)
     # ProblemC(df)
     ProblemD(df)
     #Model_E = ProblemE(df)
