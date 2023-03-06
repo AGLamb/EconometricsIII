@@ -1,12 +1,12 @@
 from statsmodels.tsa.api import VAR
 from numpy.linalg import inv, eig
 import matplotlib.pyplot as plt
+from itertools import accumulate
 import scipy.stats as stats
+from pprint import pprint
 import pandas as pd
 import numpy as np
 import os
-from pprint import pprint
-from itertools import accumulate
 
 
 class VAR_Model:
@@ -114,8 +114,8 @@ class VAR_Model:
             i = 0
             for var1 in causing_var:
                 for var2 in caused_var:
-                    for j in range(1, self.order + 1):
-                        restriction_matrix[var2, var1 * j + 1] = 1
+                    for j in range(self.order):
+                        restriction_matrix[var2, var1 + j * len(self.exog.columns) + 1] = 1
                         C[i, :] = vec_operator(restriction_matrix)
                         restriction_matrix[:, :] = 0
                         i += 1
@@ -128,11 +128,11 @@ class VAR_Model:
             for var1 in causing_var:
                 for var2 in caused_var:
                     for j in range(self.order):
-                        restriction_matrix[var2, var1 * j] = 1
+                        restriction_matrix[var2, var1 + j * len(self.exog.columns)] = 1
                         C[i, :] = vec_operator(restriction_matrix)
                         restriction_matrix[:, :] = 0
                         i += 1
-
+        print(C)
         Cb = np.dot(C, vec_operator(self.coef.T))
 
         kron_prod = np.kron(np.linalg.inv(self.exo_lagged.T @ self.exo_lagged), self.sigma2_LS)
@@ -253,6 +253,7 @@ def ProblemD(input_df: pd.DataFrame) -> None:
     model_3.regress()
 
     B_hat = model_3.coef.T
+<<<<<<< HEAD
     
     #### check for stability 
     mA=np.zeros(shape=(4,4))
@@ -267,6 +268,9 @@ def ProblemD(input_df: pd.DataFrame) -> None:
     print(modulus)
 
 
+=======
+    # print(B_hat)
+>>>>>>> 7b8fc9515cf392ed85acd0c3c4dc02b90a0060b6
 
     ## calculate and plot 4 impulse response functions with 10 periods
     horizon = 11
@@ -274,25 +278,31 @@ def ProblemD(input_df: pd.DataFrame) -> None:
     # Initialize arrays
     IR_array = np.zeros((horizon + 1, 2, 2))
     IR_array[0, :, :] = np.identity(2)
-    #print(IR_array)
+    # print(IR_array)
 
+<<<<<<< HEAD
     #2x2 array for each horizon
     A_hat_array = np.zeros((2, horizon*2))
     A_hat_array[:, :4] = B_hat[:, 1:]
+=======
+    # 2x2 array for each horizon
+    A_hat_array = np.zeros((2, horizon * 2))
+    A_hat_array[:, :6] = B_hat[:, 1:]
+>>>>>>> 7b8fc9515cf392ed85acd0c3c4dc02b90a0060b6
 
-    #print(A_hat_array)
+    # print(A_hat_array)
 
     # Calculate impulse responses, the range is correct cause 0 indexing
     for i in range(1, horizon + 1):
-        #print(i)
+        # print(i)
         IR_here = np.zeros((2, 2))
         previous_j = 0
-        for j in range(1, i+1):
-            IR_here += IR_array[i-j, :, :] @ A_hat_array[:, previous_j:(2*j)]
-            #print(i,j)
-            #print('ir',IR_array[(i-1)-j, :, :])
-            #print('A_hat', A_hat_array[:, previous_j:(2*j)])
-            previous_j = 2*j
+        for j in range(1, i + 1):
+            IR_here += IR_array[i - j, :, :] @ A_hat_array[:, previous_j:(2 * j)]
+            # print(i,j)
+            # print('ir',IR_array[(i-1)-j, :, :])
+            # print('A_hat', A_hat_array[:, previous_j:(2*j)])
+            previous_j = 2 * j
         IR_array[i, :, :] = IR_here
 
     #print(IR_array)
@@ -310,7 +320,6 @@ def ProblemD(input_df: pd.DataFrame) -> None:
         cpi_gpd.append(IR_array[i, 0, 1])
         gpd_cpi.append(IR_array[i, 1, 0])
         gdp_gdp.append(IR_array[i, 0, 0])
-
 
     cpi_cpi_acc = list(accumulate(cpi_cpi))
     cpi_gpd_acc = list(accumulate(cpi_gpd))
@@ -331,7 +340,7 @@ def ProblemD(input_df: pd.DataFrame) -> None:
         # Determine row and column indices for current subplot
         row = i // 2
         col = i % 2
-        
+
         # Plot impulse response and set x-axis limits and labels
         axs[row, col].plot(ir)
         axs[row, col].set_xlim([0, 10])
@@ -347,20 +356,16 @@ def ProblemD(input_df: pd.DataFrame) -> None:
         # Determine row and column indices for current subplot
         row = i // 2
         col = i % 2
-        
+
         # Plot impulse response and set x-axis limits and labels
         axs[row, col].plot(ir)
         axs[row, col].set_xlim([0, 10])
         axs[row, col].set_xticks(range(1, 11))
         axs[row, col].set_xticklabels(range(1, 11))
         axs[row, col].set_title(title_names[i])
-    
 
     # Adjust layout and show plot
     plt.show()
-
-        
-
 
     return None
 
@@ -381,12 +386,18 @@ def ProblemF(input_model: VAR_Model) -> None:
 def main() -> None:
     path = "./Data/data_assignment1_2023.csv"
     df = get_data(path)
+<<<<<<< HEAD
     # ProblemA(df)
     #ProblemB(df)
     # ProblemC(df)
+=======
+    ProblemA(df)
+    ProblemB(df)
+    ProblemC(df)
+>>>>>>> 7b8fc9515cf392ed85acd0c3c4dc02b90a0060b6
     ProblemD(df)
-    #Model_E = ProblemE(df)
-    #ProblemF(Model_E)
+    Model_E = ProblemE(df)
+    ProblemF(Model_E)
 
     return None
 
