@@ -253,9 +253,9 @@ def ProblemD(input_df: pd.DataFrame) -> None:
     model_3.regress()
 
     B_hat = model_3.coef.T
-<<<<<<< HEAD
+    # print(B_hat)
     
-    #### check for stability 
+    # check for stability
     mA=np.zeros(shape=(4,4))
     mA[:2,:]=B_hat[:,1:]
     mA[2,0]=mA[3,1]=1   
@@ -263,14 +263,7 @@ def ProblemD(input_df: pd.DataFrame) -> None:
     eigenvalues=np.linalg.eig(mA)[0]
     print(eigenvalues)
 
-    modulus = np.abs(eigenvalues)
-
-    print(modulus)
-
-
-=======
-    # print(B_hat)
->>>>>>> 7b8fc9515cf392ed85acd0c3c4dc02b90a0060b6
+    print(np.abs(eigenvalues))
 
     ## calculate and plot 4 impulse response functions with 10 periods
     horizon = 11
@@ -280,15 +273,9 @@ def ProblemD(input_df: pd.DataFrame) -> None:
     IR_array[0, :, :] = np.identity(2)
     # print(IR_array)
 
-<<<<<<< HEAD
-    #2x2 array for each horizon
-    A_hat_array = np.zeros((2, horizon*2))
-    A_hat_array[:, :4] = B_hat[:, 1:]
-=======
     # 2x2 array for each horizon
     A_hat_array = np.zeros((2, horizon * 2))
-    A_hat_array[:, :6] = B_hat[:, 1:]
->>>>>>> 7b8fc9515cf392ed85acd0c3c4dc02b90a0060b6
+    A_hat_array[:, :4] = B_hat[:, 1:]
 
     # print(A_hat_array)
 
@@ -386,15 +373,9 @@ def ProblemF(input_model: VAR_Model) -> None:
 def main() -> None:
     path = "./Data/data_assignment1_2023.csv"
     df = get_data(path)
-<<<<<<< HEAD
-    # ProblemA(df)
-    #ProblemB(df)
-    # ProblemC(df)
-=======
     ProblemA(df)
     ProblemB(df)
     ProblemC(df)
->>>>>>> 7b8fc9515cf392ed85acd0c3c4dc02b90a0060b6
     ProblemD(df)
     Model_E = ProblemE(df)
     ProblemF(Model_E)
